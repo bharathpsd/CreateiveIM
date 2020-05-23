@@ -6,10 +6,12 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
 import com.example.android.creativeim.databinding.FragmentSplashBinding
 import com.example.android.creativeim.ui.MainViewModel
 import com.example.android.creativeim.utils.Logger
+import com.example.android.creativeim.utils.Result
 import com.example.android.creativeim.utils.getViewModelFactory
 import kotlinx.android.synthetic.main.fragment_splash.*
 
@@ -36,12 +38,11 @@ class SplashFragment : Fragment() {
 
     private fun setClickListeners() {
         Logger.log(TAG, "Inside click Listeners")
-        viewModel._hasUser.let {
-            if(it.value!!) {
-                Logger.log(TAG, "${it.value}")
-                navigateToOtherFragment(3)
+        viewModel.authEvent.observe(viewLifecycleOwner, Observer {
+            when (it) {
+                is Result.Success -> navigateToOtherFragment(3)
             }
-        }
+        })
         sign_in.setOnClickListener {
             Logger.log(TAG, "Inside sign_in Listeners")
             navigateToOtherFragment(2)
