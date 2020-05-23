@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "311737096488",
+    "firebase_url": "https://creative-im.firebaseio.com",
+    "project_id": "creative-im",
+    "storage_bucket": "creative-im.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:311737096488:android:a74d2cc5f4796a9dda981d",
+        "android_client_info": {
+          "package_name": "com.example.android.creativeim"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "311737096488-maogs1p712prf31h31f6aj1mnc907vff.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDwpghTvyzcAevVKuq5blO2HZia5qmoIig"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "311737096488-maogs1p712prf31h31f6aj1mnc907vff.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

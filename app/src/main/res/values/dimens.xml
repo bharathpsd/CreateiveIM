@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="default_textview_margin">10dp</dimen>
+    <dimen name="textview_corners">30dp</dimen>
+    <dimen name="default_padding">15dp</dimen>
+    <dimen name="button_margin">65dp</dimen>
+</resources>
