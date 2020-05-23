@@ -8,8 +8,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.android.creativeim.repo.LoginRepoInterface
 import com.example.android.creativeim.utils.Logger
 import com.example.android.creativeim.utils.OnAuthCompleteListener
-import com.example.android.creativeim.utils.Result.Error
-import com.example.android.creativeim.utils.Result.Success
+import com.example.android.creativeim.utils.Result
 import com.google.firebase.auth.FirebaseUser
 import kotlinx.coroutines.launch
 
@@ -24,6 +23,16 @@ class MainViewModel (
 
     private val _authUser : MutableLiveData<FirebaseUser>? =  null
     val authUser : LiveData<FirebaseUser>? = _authUser
+
+    private val _authEvent = MutableLiveData<Result<Any>>()
+    val authEvent = _authEvent
+
+    private val hasUser = MutableLiveData(false)
+    val _hasUser = hasUser
+
+    init {
+        getCurrentUser()
+    }
 
     fun validateUNandPassword(userNameView : EditText, pwdNameView : EditText, screen : Int){
 
@@ -55,25 +64,31 @@ class MainViewModel (
         repo.loginWithEmailandPwd(userId, pwd, this)
     }
 
-    fun getCurrentUser() {
+    private fun getCurrentUser() {
         viewModelScope.launch {
-           repo.getUser().data?.let {
-               _authUser!!.value = it
+           repo.getUser().data?.let {user ->
+               _authUser?.let {
+                   it.value = user
+                   hasUser.value = true
+               }
            }
         }
     }
 
-    override fun onSuccess(user : Success<FirebaseUser>)  {
+    override fun onSuccess(user: Result<FirebaseUser>) {
         _auth.value = false
         Logger.log(TAG, "Received Firebase User :  ${user.data.toString()}" )
-//        updateEvent(user)
+        updateEvent(user)
     }
 
-    override fun onFailure(message : Error<String>)  {
+    private fun updateEvent(user: Result<Any>) {
+        _authEvent.value = user
+    }
+
+    override fun onFailure(message: Result<String>) {
         _auth.value = false
         Logger.log(TAG, "Received Firebase Error : $message")
-//        updateEvent(message)
+        updateEvent(message)
     }
-
 
 }

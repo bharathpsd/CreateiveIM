@@ -3,10 +3,10 @@ package com.example.android.creativeim.repo
 import com.example.android.creativeim.utils.Logger
 import com.example.android.creativeim.utils.OnAuthCompleteListener
 import com.example.android.creativeim.utils.Result
+import com.example.android.creativeim.utils.Result.Error
+import com.example.android.creativeim.utils.Result.Success
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
-import com.example.android.creativeim.utils.Result.Success
-import com.example.android.creativeim.utils.Result.Error
 
 private const val TAG = "LoginRepo"
 
@@ -16,7 +16,9 @@ class LoginRepo (
     override suspend fun loginWithEmailandPwd(userId: String, pwd: String, authCompleteListener: OnAuthCompleteListener) {
         firebaseAuth.signInWithEmailAndPassword(userId, pwd)
             .addOnCompleteListener {
-                if (!it.isSuccessful) {
+                if(it.isComplete && it.exception.toString().isNotEmpty()) {
+                    authCompleteListener.onFailure(Error(it.exception!!.message.toString()))
+                } else if (!it.isSuccessful) {
                     Logger.log(TAG, "User not created with error : " + it.result)
                     authCompleteListener.onFailure(Error(it.result.toString()))
                 } else {
@@ -28,7 +30,9 @@ class LoginRepo (
     override suspend fun createUserAuth(userId: String, pwd: String, authCompleteListener: OnAuthCompleteListener) {
         firebaseAuth.createUserWithEmailAndPassword(userId, pwd)
             .addOnCompleteListener {
-                if (!it.isSuccessful) {
+                if(it.isComplete && it.exception.toString().isNotEmpty()) {
+                    authCompleteListener.onFailure(Error(it.exception!!.message.toString()))
+                } else if (!it.isSuccessful) {
                     Logger.log(TAG, "User not created with error : " + it.result)
                     authCompleteListener.onFailure(Error(it.result.toString()))
                 } else {

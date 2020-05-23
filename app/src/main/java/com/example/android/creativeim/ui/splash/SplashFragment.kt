@@ -1,10 +1,10 @@
 package com.example.android.creativeim.ui.splash
 
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.example.android.creativeim.databinding.FragmentSplashBinding
@@ -17,6 +17,8 @@ class SplashFragment : Fragment() {
     private val TAG = "SplashFragment"
     private lateinit var viewBinding : FragmentSplashBinding
 
+    private val viewModel by viewModels<MainViewModel> { getViewModelFactory() }
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -27,12 +29,19 @@ class SplashFragment : Fragment() {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
+        viewBinding.viewmodel = viewModel
         viewBinding.lifecycleOwner = viewLifecycleOwner
         setClickListeners()
     }
 
     private fun setClickListeners() {
         Logger.log(TAG, "Inside click Listeners")
+        viewModel._hasUser.let {
+            if(it.value!!) {
+                Logger.log(TAG, "${it.value}")
+                navigateToOtherFragment(3)
+            }
+        }
         sign_in.setOnClickListener {
             Logger.log(TAG, "Inside sign_in Listeners")
             navigateToOtherFragment(2)
@@ -48,6 +57,7 @@ class SplashFragment : Fragment() {
         when(screen) {
             1 -> findNavController().navigate(SplashFragmentDirections.actionSplashFragmentToRegisterFragment())
             2 -> findNavController().navigate(SplashFragmentDirections.actionSplashFragmentToLoginFragment())
+            3 -> findNavController().navigate(SplashFragmentDirections.actionSplashFragmentToHomeFragment())
             else -> findNavController().navigate(SplashFragmentDirections.actionSplashFragmentToRegisterFragment())
         }
     }
