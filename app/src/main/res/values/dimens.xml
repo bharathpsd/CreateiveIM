@@ -4,4 +4,5 @@
     <dimen name="textview_corners">30dp</dimen>
     <dimen name="default_padding">15dp</dimen>
     <dimen name="button_margin">65dp</dimen>
+    <dimen name="textSize">20sp</dimen>
 </resources>
