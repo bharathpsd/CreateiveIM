@@ -5,7 +5,6 @@
     tools:context=".ui.mainApp.UserDetailsFragment">
 
     <data>
-
         <import type="android.view.View" />
 
         <variable
@@ -123,4 +122,5 @@
             android:visibility="@{viewmodel.auth ? View.VISIBLE : View.GONE}" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
+
 </layout>
