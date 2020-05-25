@@ -1,6 +1,7 @@
 package com.example.android.creativeim.repo
 
 import com.example.android.creativeim.User
+import com.example.android.creativeim.messagedata.NotificationData
 import com.example.android.creativeim.utils.Logger
 import com.example.android.creativeim.utils.OnAuthCompleteListener
 import com.example.android.creativeim.utils.Result
@@ -12,13 +13,16 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.UserProfileChangeRequest
 import com.google.firebase.firestore.CollectionReference
+import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.QuerySnapshot
 
 private const val TAG = "LoginRepo"
 
 class LoginRepo (
     private val firebaseAuth: FirebaseAuth,
-    fireStore: FirebaseFirestore
+    fireStore: FirebaseFirestore,
+    private val sendMessageService: SendMessageServiceInterface
 ) : LoginRepoInterface{
 
     private val collectionPrefs: CollectionReference = fireStore.collection("persons")
@@ -75,6 +79,20 @@ class LoginRepo (
 
     }
 
+    override suspend fun signOutUser() {
+        Logger.log(TAG, "Signing out user")
+        firebaseAuth.signOut()
+    }
+
+    override suspend fun deleteAccount() {
+
+    }
+
+    override suspend fun sendMessage(data: NotificationData) {
+//        sendMessageService.sendMessage(data)
+        collectionPrefs.document()
+    }
+
     private fun handleAuthResult(
         it: Task<AuthResult>,
         authCompleteListener: OnAuthCompleteListener
@@ -91,5 +109,75 @@ class LoginRepo (
         }
     }
 
+    override suspend fun searchUid(userId: String, authCompleteListener: OnAuthCompleteListener) {
+        Logger.log(TAG, "authcompleteLister : $authCompleteListener")
+        collectionPrefs
+            .whereEqualTo("userName", userId)
+            .get()
+            .addOnCompleteListener {
+                searchUser(it, authCompleteListener)
+            }
+    }
+
+    private fun searchUser(it: Task<QuerySnapshot>, authCompleteListener: OnAuthCompleteListener) {
+        Logger.log(TAG, "Person Pref search is complete : $it")
+        it.result?.let { query ->
+            if (query.documents.isNotEmpty()) {
+                for (document in query) {
+                    Logger.log(TAG, "QueryDocumentSnapshot ID : ${document.id}")
+                    collectionPrefs.document(document.id).get()
+                        .addOnCompleteListener { result ->
+                            try {
+                                if (!result.isSuccessful) {
+                                    Logger.log(TAG, "No Person with this name")
+                                    authCompleteListener.onFailure(Error(result.exception!!.message.toString()))
+                                } else if (result.isSuccessful) {
+                                    Logger.log(TAG, "Result is successful : ${result.result}")
+                                    result.result.let { user ->
+                                        Logger.log(TAG, "Inside result user")
+                                        Logger.log(TAG, "The user is : $user")
+                                        dataToObject(user, authCompleteListener)
+                                        return@addOnCompleteListener
+                                    }
+                                } else if (result.exception.toString().isNotEmpty()) {
+                                    Logger.log(TAG, "No Person with this name: ${result.exception}")
+                                    authCompleteListener.onFailure(Error(result.exception!!.message.toString()))
+                                    return@addOnCompleteListener
+                                }
+                            } catch (e: Exception) {
+                                Logger.log(
+                                    TAG,
+                                    " Caught Exception during search : ${result.exception}"
+                                )
+                                authCompleteListener.onFailure(Error(e.message.toString()))
+                                return@addOnCompleteListener
+                            }
+                        }
+                }
+            } else {
+                authCompleteListener.onFailure(Error(it.exception!!.message.toString()))
+                Logger.log(TAG, "No Person with this name")
+                return
+            }
+        }
+//        authCompleteListener.onFailure(Error(it.exception!!.message.toString()))
+        Logger.log(TAG, "No Person with this name : ${it.exception}")
+        return
+    }
+
+    private fun dataToObject(
+        user: DocumentSnapshot?,
+        authCompleteListener: OnAuthCompleteListener
+    ) {
+        val firstName = user!!.get("firstName").toString()
+        val lastName = user.get("lastName").toString()
+        val userId = user.get("userId").toString()
+        val age = user.get("age").toString().toInt()
+        val userName = user.get("userName").toString()
+        val person = User(userId, userName, firstName, lastName, age)
+        Logger.log(TAG, "Person : $person")
+        authCompleteListener.onSuccess(Success(person))
+        return
+    }
 
 }

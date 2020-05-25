@@ -1,9 +1,9 @@
 package com.example.android.creativeim.apiService
 
 import com.example.android.creativeim.constants.Constants
-import com.example.android.creativeim.messagedata.MessageData
+import com.example.android.creativeim.constants.Constants.contentType
 import com.example.android.creativeim.messagedata.NotificationData
-import retrofit2.Response
+import okhttp3.ResponseBody
 import retrofit2.http.Body
 import retrofit2.http.Headers
 import retrofit2.http.POST
@@ -12,11 +12,11 @@ interface NotificationMessage {
 
     @POST("fcm/send")
     @Headers(
-        "Authorization : key=${Constants.serverKey}",
-        "Content-Type : ${Constants.contentType}"
+        "Authorization: key=${Constants.serverKey}",
+        "Content-Type: $contentType"
     )
     suspend fun postMessage(
         @Body notificationData: NotificationData
-    ): Response<MessageData>
+    ): ResponseBody
 
 }

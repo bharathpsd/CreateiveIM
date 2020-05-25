@@ -14,4 +14,13 @@
     <string name="firstname">First Name</string>
     <string name="lastname">Last Name</string>
     <string name="age">Age</string>
+    <string name="sign_out">Sign Out</string>
+    <string name="new_message">New Message</string>
+    <string name="title">Title</string>
+    <string name="desc">Description</string>
+    <string name="send">Send Message</string>
+    <string name="search">Search</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="userData">Do you want to add this guy as a user ?</string>
 </resources>

@@ -14,6 +14,7 @@ import com.example.android.creativeim.utils.Logger
 import com.example.android.creativeim.utils.Result
 import com.example.android.creativeim.utils.getViewModelFactory
 import com.google.android.material.snackbar.Snackbar
+import kotlinx.android.synthetic.main.fragment_register.*
 
 class RegisterFragment : Fragment() {
 
@@ -45,15 +46,22 @@ class RegisterFragment : Fragment() {
                 is Result.Error -> showToast(it.message)
             }
         })
+        already_registered.setOnClickListener {
+            navigateToLoginFragment()
+        }
     }
 
     private fun showToast(message: String?) {
         Logger.log(TAG, "Error during registration with message : $message")
-        Snackbar.make(requireView(), "Error occurred during registration", Snackbar.LENGTH_SHORT).show()
+        Snackbar.make(requireView(), message!!, Snackbar.LENGTH_SHORT).show()
     }
 
     private fun navigateToHomeFragment() {
         findNavController().navigate(RegisterFragmentDirections.actionRegisterFragmentToHomeFragment())
+    }
+
+    private fun navigateToLoginFragment() {
+        findNavController().navigate(RegisterFragmentDirections.actionRegisterFragmentToLoginFragment())
     }
 
 

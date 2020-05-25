@@ -6,6 +6,9 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.android.creativeim.User
+import com.example.android.creativeim.constants.Constants.MY_TOPIC
+import com.example.android.creativeim.messagedata.MessageData
+import com.example.android.creativeim.messagedata.NotificationData
 import com.example.android.creativeim.repo.LoginRepoInterface
 import com.example.android.creativeim.utils.Logger
 import com.example.android.creativeim.utils.OnAuthCompleteListener
@@ -79,15 +82,22 @@ class MainViewModel (
     override fun onSuccess(user: Result<Any>) {
         _auth.value = false
         Logger.log(TAG, "Received Firebase User :  ${user.data.toString()}" )
-        if (user.data is FirebaseUser) {
-            currentUser.value = user.data
-            updateEvent(user)
-        } else if (user.data is DocumentReference) {
-            updateEvent(user)
+        when (user.data) {
+            is FirebaseUser -> {
+                currentUser.value = user.data
+                updateEvent(user)
+            }
+            is DocumentReference -> {
+                updateEvent(user)
+            }
+            is User -> {
+                updateEvent(user)
+            }
         }
     }
 
     private fun updateEvent(user: Result<Any>) {
+        Logger.log(TAG, "inside Update event with ${user.data}")
         _authEvent.value = user
         if (user.data is FirebaseUser) {
             currentUser.value = user.data
@@ -139,6 +149,48 @@ class MainViewModel (
     private suspend fun updateUser(user: User) {
         Logger.log(TAG, "Inside update user details")
         repo.updateUserDetails(user, this)
+    }
+
+    fun signOutUser() {
+        viewModelScope.launch {
+            Logger.log(TAG, "User Signed Out method")
+            repo.signOutUser()
+        }
+    }
+
+    fun sendMessage(title: EditText, desc: EditText) {
+        if (title.text.isNullOrEmpty()) {
+            title.error = "Title Cannot be Null"
+        }
+
+        if (desc.text.isNullOrEmpty()) {
+            desc.error = "Desc Cannot be Null"
+        }
+
+        if (title.text.isNotEmpty() && desc.text.isNotEmpty()) {
+            viewModelScope.launch {
+                val messageData = MessageData(title.text.toString(), desc.text.toString())
+                val notificationData = NotificationData(messageData, MY_TOPIC)
+                repo.sendMessage(notificationData)
+            }
+        }
+    }
+
+    fun searchUser(userName: EditText) {
+        Logger.log(TAG, "Inside Search User Method")
+        if (userName.text.isNullOrEmpty()) {
+            userName.error = "Username cannot be empty"
+        } else {
+            _auth.value = true
+            viewModelScope.launch {
+                Logger.log(TAG, "Searching user...")
+                searchUserWithUserId(userName.text.toString())
+            }
+        }
+    }
+
+    private suspend fun searchUserWithUserId(text: String) {
+        repo.searchUid(text, this)
     }
 
 }

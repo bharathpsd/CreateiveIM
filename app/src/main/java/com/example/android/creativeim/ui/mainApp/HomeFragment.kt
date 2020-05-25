@@ -1,13 +1,12 @@
 package com.example.android.creativeim.ui.mainApp
 
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
+import com.example.android.creativeim.R
 import com.example.android.creativeim.databinding.FragmentHomeBinding
 import com.example.android.creativeim.ui.MainViewModel
 import com.example.android.creativeim.utils.Logger
@@ -37,6 +36,7 @@ class HomeFragment : Fragment() {
         viewBinding.viewmodel = viewModel
         viewBinding.lifecycleOwner = viewLifecycleOwner
         setUpView()
+        setHasOptionsMenu(true)
     }
 
     private fun setUpView() {
@@ -53,18 +53,42 @@ class HomeFragment : Fragment() {
         findNavController().navigate(HomeFragmentDirections.actionHomeFragmentToSplashFragment())
     }
 
-    private fun setTextViews(user: FirebaseUser) {
-        if (user.displayName!!.isEmpty()) {
-            navigateToUserDetailsFragment()
-        } else {
-            val textToDisplay = "Logged in as ${user.displayName.toString()}"
-            user_data.text = textToDisplay
+    private fun setTextViews(user: FirebaseUser?) {
+        user?.let {
+            if (user.displayName.isNullOrEmpty()) {
+                navigateToUserDetailsFragment()
+            } else {
+                val textToDisplay = "Logged in as ${user.displayName.toString()}"
+                user_data.text = textToDisplay
+            }
+            return
         }
     }
 
     private fun navigateToUserDetailsFragment() {
         Logger.log(TAG, "Navigating to User Details Fragment")
         findNavController().navigate(HomeFragmentDirections.actionHomeFragmentToUserDetailsFragment())
+    }
+
+    private fun navigateToSearchUserFragment() {
+        Logger.log(TAG, "Navigating to SearchUserFragment")
+        findNavController().navigate(HomeFragmentDirections.actionHomeFragmentToSearchUserFragment())
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        inflater.inflate(R.menu.home_menu, menu)
+        super.onCreateOptionsMenu(menu, inflater)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            R.id.sign_out -> {
+                viewModel.signOutUser()
+                navigateToSplash()
+            }
+            R.id.new_message -> navigateToSearchUserFragment()
+        }
+        return super.onOptionsItemSelected(item)
     }
 
 }

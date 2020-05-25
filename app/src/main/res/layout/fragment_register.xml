@@ -74,7 +74,8 @@
             android:onClick="@{() -> viewmodel.validateUNandPassword(email, pwd, 1)}"/>
 
         <TextView
-            android:layout_width="match_parent"
+            android:id="@+id/already_registered"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
@@ -84,6 +85,7 @@
             android:backgroundTint="@android:color/transparent"
             app:layout_constraintVertical_bias="0.05"
             android:gravity="center"
+            android:padding="@dimen/register_text"
             android:textColor="@android:color/white" />
 
         <ProgressBar
