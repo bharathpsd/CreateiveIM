@@ -6,4 +6,5 @@
     <dimen name="button_margin">65dp</dimen>
     <dimen name="textSize">20sp</dimen>
     <dimen name="register_text">10dp</dimen>
+    <dimen name="default_margin_5">5dp</dimen>
 </resources>

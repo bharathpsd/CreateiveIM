@@ -5,11 +5,10 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.android.creativeim.constants.Constants.MY_TOPIC
 import com.example.android.creativeim.data.User
 import com.example.android.creativeim.messagedata.MessageData
-import com.example.android.creativeim.messagedata.NotificationData
 import com.example.android.creativeim.repo.LoginRepoInterface
+import com.example.android.creativeim.utils.EventProgress
 import com.example.android.creativeim.utils.Logger
 import com.example.android.creativeim.utils.OnAuthCompleteListener
 import com.example.android.creativeim.utils.Result
@@ -32,6 +31,15 @@ class MainViewModel (
 
     private val _authEvent = MutableLiveData<Result<Any>>()
     val authEvent = _authEvent
+
+    private val _messages = MutableLiveData<List<MessageData>>()
+    val messages: LiveData<List<MessageData>> = _messages
+
+    private val _friends = MutableLiveData<List<User>>()
+    val friends: LiveData<List<User>> = _friends
+
+    private val _openUser = MutableLiveData<EventProgress<User>>()
+    val openUser: LiveData<EventProgress<User>> = _openUser
 
     private val currentUser = MutableLiveData<FirebaseUser>()
 
@@ -79,6 +87,15 @@ class MainViewModel (
         }
     }
 
+
+    private fun updateEvent(user: Result<Any>) {
+        Logger.log(TAG, "inside Update event with ${user.data}")
+        _authEvent.value = user
+        if (user.data is FirebaseUser) {
+            currentUser.value = user.data
+        }
+    }
+
     override fun onSuccess(user: Result<Any>) {
         _auth.value = false
         Logger.log(TAG, "Received Firebase User :  ${user.data.toString()}" )
@@ -93,14 +110,6 @@ class MainViewModel (
             is User -> {
                 updateEvent(user)
             }
-        }
-    }
-
-    private fun updateEvent(user: Result<Any>) {
-        Logger.log(TAG, "inside Update event with ${user.data}")
-        _authEvent.value = user
-        if (user.data is FirebaseUser) {
-            currentUser.value = user.data
         }
     }
 
@@ -158,28 +167,13 @@ class MainViewModel (
         }
     }
 
-    fun sendMessage(title: EditText, desc: EditText) {
-        if (title.text.isNullOrEmpty()) {
-            title.error = "Title Cannot be Null"
-        }
-
-        if (desc.text.isNullOrEmpty()) {
-            desc.error = "Desc Cannot be Null"
-        }
-
-        if (title.text.isNotEmpty() && desc.text.isNotEmpty()) {
-            viewModelScope.launch {
-                val messageData = MessageData(title.text.toString(), desc.text.toString())
-                val notificationData = NotificationData(messageData, MY_TOPIC)
-                repo.sendMessage(notificationData)
-            }
-        }
-    }
 
     fun searchUser(userName: EditText) {
         Logger.log(TAG, "Inside Search User Method")
         if (userName.text.isNullOrEmpty()) {
             userName.error = "Username cannot be empty"
+        } else if (currentUser.value!!.displayName.equals(userName.text.toString())) {
+            userName.error = "Grow up. This is your id"
         } else {
             _auth.value = true
             viewModelScope.launch {
@@ -193,8 +187,53 @@ class MainViewModel (
         repo.searchUid(text, this)
     }
 
-    fun addUserToMessagesList(userId: String) {
+    fun sendMessage(
+        message: String,
+        fromId: String,
+        toId: String,
+        timeStamp: Long,
+        toUser: String,
+        fromUser: String
+    ) {
+        viewModelScope.launch {
+            repo.sendMessage(message, fromId, toId, timeStamp, toUser, fromUser)
+        }
+    }
 
+    fun getMessages(fromId: String, toId: String) {
+        Logger.log(TAG, "Inside getMessages")
+        viewModelScope.launch {
+            getMessagesFromDatabase(_messages, fromId, toId)
+        }
+    }
+
+    private suspend fun getMessagesFromDatabase(
+        message: MutableLiveData<List<MessageData>>,
+        fromId: String,
+        toId: String
+    ) {
+        Logger.log(TAG, "Inside getMessages Database")
+        repo.getMessages(message, fromId, toId)
+    }
+
+    fun addUserToFriendsList(currentUserId: String, currentUserName: String, user: User) {
+        viewModelScope.launch {
+            repo.addUserFriends(currentUserId, currentUserName, user)
+        }
+    }
+
+    fun getFriendsForUser(uid: String, username: String) {
+        viewModelScope.launch {
+            getFriendsList(uid, username)
+        }
+    }
+
+    private suspend fun getFriendsList(uid: String, username: String) {
+        repo.getUserFriends(_friends, uid, username, this)
+    }
+
+    fun openUser(user: User) {
+        _openUser.value = EventProgress(user)
     }
 
 }

@@ -6,9 +6,13 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.android.creativeim.R
+import com.example.android.creativeim.data.User
 import com.example.android.creativeim.databinding.FragmentHomeBinding
 import com.example.android.creativeim.ui.MainViewModel
+import com.example.android.creativeim.ui.UserAdpater
+import com.example.android.creativeim.utils.EventObserver
 import com.example.android.creativeim.utils.Logger
 import com.example.android.creativeim.utils.Result
 import com.example.android.creativeim.utils.getViewModelFactory
@@ -21,6 +25,8 @@ class HomeFragment : Fragment() {
     private val viewModel by viewModels<MainViewModel> { getViewModelFactory() }
 
     private lateinit var viewBinding : FragmentHomeBinding
+
+    private lateinit var listAdapter: UserAdpater
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -35,16 +41,39 @@ class HomeFragment : Fragment() {
         viewBinding.viewmodel = viewModel
         viewBinding.lifecycleOwner = viewLifecycleOwner
         setUpView()
+        setUpAdapter()
         setHasOptionsMenu(true)
+    }
+
+    private fun setUpAdapter() {
+        val layoutManager =
+            LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
+        viewBinding.viewmodel?.let {
+            listAdapter = UserAdpater(viewModel)
+            viewBinding.friends.layoutManager = layoutManager
+            viewBinding.friends.adapter = listAdapter
+        }
     }
 
     private fun setUpView() {
         viewModel.authEvent.observe(viewLifecycleOwner, Observer {
             when (it) {
-                is Result.Success -> setTextViews(it.data as FirebaseUser)
+                is Result.Success -> {
+                    if (it.data is FirebaseUser)
+                        setTextViews(it.data)
+                }
                 is Result.Error -> navigateToSplash()
             }
         })
+
+        viewModel.openUser.observe(viewLifecycleOwner, EventObserver {
+            navigateToMessagesFragment(it)
+        })
+    }
+
+    private fun navigateToMessagesFragment(user: User) {
+        val action = HomeFragmentDirections.actionHomeFragmentToMessagesFragment(user)
+        findNavController().navigate(action)
     }
 
     private fun navigateToSplash() {
@@ -60,9 +89,11 @@ class HomeFragment : Fragment() {
                 val textToDisplay = "Logged in as ${user.displayName.toString()}"
                 Logger.log(TAG, textToDisplay)
 //                user_data.text = textToDisplay
+                Logger.log(TAG, "Calling getMessages()")
+                viewModel.getFriendsForUser(user.uid, user.displayName.toString())
             }
-            return
         }
+
     }
 
     private fun navigateToUserDetailsFragment() {

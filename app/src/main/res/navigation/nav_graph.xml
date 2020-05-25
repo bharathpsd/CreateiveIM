@@ -54,6 +54,9 @@
         <action
             android:id="@+id/action_homeFragment_to_searchUserFragment"
             app:destination="@id/searchUserFragment" />
+        <action
+            android:id="@+id/action_homeFragment_to_messagesFragment"
+            app:destination="@id/messagesFragment" />
     </fragment>
     <fragment
         android:id="@+id/userDetailsFragment"
@@ -84,5 +87,20 @@
         <action
             android:id="@+id/action_userSearchSuccessFragment_to_homeFragment"
             app:destination="@id/homeFragment" />
+        <action
+            android:id="@+id/action_userSearchSuccessFragment_to_messagesFragment"
+            app:destination="@id/messagesFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/messagesFragment"
+        android:name="com.example.android.creativeim.ui.mainApp.MessagesFragment"
+        android:label="fragment_messages"
+        tools:layout="@layout/fragment_messages">
+        <action
+            android:id="@+id/action_messagesFragment_to_homeFragment"
+            app:destination="@id/homeFragment" />
+        <argument
+            android:name="user"
+            app:argType="com.example.android.creativeim.data.User" />
     </fragment>
 </navigation>

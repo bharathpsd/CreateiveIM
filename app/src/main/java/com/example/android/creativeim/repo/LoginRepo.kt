@@ -1,7 +1,8 @@
 package com.example.android.creativeim.repo
 
+import androidx.lifecycle.MutableLiveData
 import com.example.android.creativeim.data.User
-import com.example.android.creativeim.messagedata.NotificationData
+import com.example.android.creativeim.messagedata.MessageData
 import com.example.android.creativeim.utils.Logger
 import com.example.android.creativeim.utils.OnAuthCompleteListener
 import com.example.android.creativeim.utils.Result
@@ -12,10 +13,7 @@ import com.google.firebase.auth.AuthResult
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.UserProfileChangeRequest
-import com.google.firebase.firestore.CollectionReference
-import com.google.firebase.firestore.DocumentSnapshot
-import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.QuerySnapshot
+import com.google.firebase.firestore.*
 
 private const val TAG = "LoginRepo"
 
@@ -26,7 +24,6 @@ class LoginRepo (
 ) : LoginRepoInterface{
 
     private val collectionPrefs: CollectionReference = fireStore.collection("persons")
-    private lateinit var messageCollection: CollectionReference
 
     override suspend fun loginWithEmailandPwd(userId: String, pwd: String, authCompleteListener: OnAuthCompleteListener) {
         firebaseAuth.signInWithEmailAndPassword(userId, pwd)
@@ -66,9 +63,8 @@ class LoginRepo (
                             Logger.log(TAG, "Task Result ID: " + taskRef.result?.id)
                             val doc = taskRef.result
                             if (doc?.id != null || doc?.id!!.isNotEmpty()) {
-                                messageCollectionRef(doc.id)
+                                authCompleteListener.onSuccess(Success(doc))
                             }
-                            authCompleteListener.onSuccess(Success(doc))
                         } else {
                             Logger.log(TAG, "User details update failed")
                             authCompleteListener.onFailure(Error(taskRef.result.toString()))
@@ -94,13 +90,19 @@ class LoginRepo (
 
     }
 
-    override suspend fun sendMessage(data: NotificationData) {
-//        sendMessageService.sendMessage(data)
-        collectionPrefs.document()
-    }
-
-    private fun messageCollectionRef(documentId: String): CollectionReference {
-        return fireStore.collection("persons/$documentId/messages")
+    override suspend fun sendMessage(
+        message: String,
+        fromId: String,
+        toId: String,
+        timeStamp: Long,
+        toUser: String,
+        fromUser: String
+    ) {
+        val reference = fireStore.collection("user-messages/$fromId/$toId")
+        val reverseRef = fireStore.collection("user-messages/$toId/$fromId")
+        val messageData = MessageData(message, fromId, toId, timeStamp, toUser, fromUser)
+        reference.add(messageData)
+        reverseRef.add(messageData)
     }
 
     private fun handleAuthResult(
@@ -131,6 +133,76 @@ class LoginRepo (
             .addOnCompleteListener {
                 searchUser(it, authCompleteListener)
             }
+    }
+
+    override suspend fun getMessages(
+        messages: MutableLiveData<List<MessageData>>,
+        fromId: String,
+        toId: String
+    ) {
+        Logger.log(TAG, "Inside getMessages of LoginRepo")
+        val messagesList = arrayListOf<MessageData>()
+        val reference = fireStore.collection("user-messages/$fromId/$toId")
+        reference.addSnapshotListener { querySnapshot, firebaseFirestoreException ->
+            firebaseFirestoreException?.let {
+                Logger.log(TAG, it.message.toString())
+                return@addSnapshotListener
+            }
+            querySnapshot?.let {
+                for (document in it) {
+                    Logger.log(TAG, "Document ID : ${document.id}")
+                    val messageData = dataToDocument(document)
+                    messagesList.add(messageData)
+                }
+                messages.value = messagesList
+                return@addSnapshotListener
+            }
+            Logger.log(TAG, "Exception getting messages")
+        }
+    }
+
+    override suspend fun addUserFriends(
+        currentUserId: String,
+        currentUserName: String,
+        user: User
+    ) {
+        val reference = fireStore.collection("friends/$currentUserId/$currentUserName")
+        reference.add(user)
+            .addOnCompleteListener {
+                if (it.isSuccessful) {
+                    Logger.log(TAG, "Added Successfully")
+                } else if (!it.isSuccessful || it.exception.toString().isNotEmpty()) {
+                    Logger.log(TAG, "Adding Friends Failed")
+                }
+            }
+    }
+
+    override suspend fun getUserFriends(
+        friends: MutableLiveData<List<User>>,
+        currentUserId: String,
+        username: String,
+        authCompleteListener: OnAuthCompleteListener
+    ) {
+        val reference = fireStore.collection("friends/$currentUserId/$username")
+        Logger.log(TAG, "Inside get user Friends ")
+        val usersList = arrayListOf<User>()
+        reference.addSnapshotListener { querySnapshot, firebaseFirestoreException ->
+            firebaseFirestoreException?.let {
+                Logger.log(TAG, it.message.toString())
+                return@addSnapshotListener
+            }
+            querySnapshot?.let {
+                Logger.log(TAG, "Query Success")
+                for (document in it) {
+                    Logger.log(TAG, "Document ID : ${document.id}")
+                    val userData = dataToObject(document)
+                    usersList.add(userData)
+                }
+                friends.value = usersList
+                return@addSnapshotListener
+            }
+            Logger.log(TAG, "Exception getting messages")
+        }
     }
 
     private fun searchUser(it: Task<QuerySnapshot>, authCompleteListener: OnAuthCompleteListener) {
@@ -197,6 +269,47 @@ class LoginRepo (
         Logger.log(TAG, "Person : $person")
         authCompleteListener.onSuccess(Success(person))
         return
+    }
+
+    private fun dataToObject(
+        user: DocumentSnapshot?
+    ): User {
+        val firstName = user!!.get("firstName").toString()
+        val lastName = user.get("lastName").toString()
+        val userId = user.get("userId").toString()
+        val age = user.get("age").toString().toInt()
+        val userName = user.get("userName").toString()
+        val person = User(
+            userId,
+            userName,
+            firstName,
+            lastName,
+            age
+        )
+        Logger.log(TAG, "Person : $person")
+        return person
+    }
+
+
+    private fun dataToDocument(
+        document: QueryDocumentSnapshot?
+    ): MessageData {
+        val message = document!!.get("message").toString()
+        val fromId = document.get("fromId").toString()
+        val toId = document.get("toId").toString()
+        val timeStamp = document.get("timeStamp").toString().toLong()
+        val toUserName = document.get("toUserName").toString()
+        val fromUserName = document.get("fromUserName").toString()
+        val messageData = MessageData(
+            message,
+            fromId,
+            toId,
+            timeStamp,
+            toUserName,
+            fromUserName
+        )
+        Logger.log(TAG, "Person : $messageData")
+        return messageData
     }
 
 }

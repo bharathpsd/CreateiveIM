@@ -24,4 +24,5 @@
     <string name="no">No</string>
     <string name="userData">Do you want to add this guy as a user ?</string>
     <string name="start_messaging">Start Conversation</string>
+    <string name="enter_message">Enter Message</string>
 </resources>
