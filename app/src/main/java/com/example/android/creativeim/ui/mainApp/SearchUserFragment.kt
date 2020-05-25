@@ -8,8 +8,9 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
+import com.example.android.creativeim.MainActivity
 import com.example.android.creativeim.R
-import com.example.android.creativeim.User
+import com.example.android.creativeim.data.User
 import com.example.android.creativeim.databinding.FragmentSearchUserBinding
 import com.example.android.creativeim.ui.MainViewModel
 import com.example.android.creativeim.utils.Logger
@@ -56,6 +57,7 @@ class SearchUserFragment : Fragment() {
     }
 
     private fun showSnackBar(message: String) {
+        (requireContext() as MainActivity).hideKeyBoard(requireView())
         Logger.log(TAG, "Error searching user : $message")
         Snackbar.make(requireView(), "Cannot find user", Snackbar.LENGTH_LONG)
             .setAction(R.string.ok) {
@@ -63,6 +65,7 @@ class SearchUserFragment : Fragment() {
     }
 
     private fun navigateToSearchSuccessFragment(data: User) {
+        (requireContext() as MainActivity).hideKeyBoard(requireView())
         val action =
             SearchUserFragmentDirections.actionSearchUserFragmentToUserSearchSuccessFragment(data)
         findNavController().navigate(action)

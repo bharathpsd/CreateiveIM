@@ -13,7 +13,6 @@ import com.example.android.creativeim.utils.Logger
 import com.example.android.creativeim.utils.Result
 import com.example.android.creativeim.utils.getViewModelFactory
 import com.google.firebase.auth.FirebaseUser
-import kotlinx.android.synthetic.main.fragment_home.*
 
 private const val TAG = "HomeFragment"
 
@@ -59,7 +58,8 @@ class HomeFragment : Fragment() {
                 navigateToUserDetailsFragment()
             } else {
                 val textToDisplay = "Logged in as ${user.displayName.toString()}"
-                user_data.text = textToDisplay
+                Logger.log(TAG, textToDisplay)
+//                user_data.text = textToDisplay
             }
             return
         }

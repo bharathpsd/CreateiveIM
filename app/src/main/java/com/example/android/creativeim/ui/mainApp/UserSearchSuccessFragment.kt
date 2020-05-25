@@ -5,8 +5,9 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import com.example.android.creativeim.R
-import com.example.android.creativeim.User
+import com.example.android.creativeim.data.User
 import com.example.android.creativeim.utils.Logger
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.fragment_user_search_success.*
@@ -43,7 +44,12 @@ class UserSearchSuccessFragment : Fragment() {
 
         no.setOnClickListener {
             showSnackBar("User is not added to your chat list")
+            navigateToHomeScreen()
         }
+    }
+
+    private fun navigateToHomeScreen() {
+        findNavController().navigate(UserSearchSuccessFragmentDirections.actionUserSearchSuccessFragmentToHomeFragment())
     }
 
     private fun showSnackBar(message: String) {

@@ -30,7 +30,7 @@
             android:layout_marginEnd="@dimen/button_margin"
             android:text="@string/sign_in"
             android:textColor="@android:color/black"
-            app:backgroundTint="@color/colorAccent"/>
+            app:backgroundTint="@color/orange" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/registration"
@@ -46,7 +46,7 @@
             app:layout_constraintVertical_bias="0.2"
             android:text="@string/register_fragment"
             android:textColor="@android:color/black"
-            app:backgroundTint="@color/colorAccent"/>
+            app:backgroundTint="@color/orange" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

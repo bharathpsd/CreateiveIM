@@ -5,8 +5,8 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.android.creativeim.User
 import com.example.android.creativeim.constants.Constants.MY_TOPIC
+import com.example.android.creativeim.data.User
 import com.example.android.creativeim.messagedata.MessageData
 import com.example.android.creativeim.messagedata.NotificationData
 import com.example.android.creativeim.repo.LoginRepoInterface
@@ -191,6 +191,10 @@ class MainViewModel (
 
     private suspend fun searchUserWithUserId(text: String) {
         repo.searchUid(text, this)
+    }
+
+    fun addUserToMessagesList(userId: String) {
+
     }
 
 }

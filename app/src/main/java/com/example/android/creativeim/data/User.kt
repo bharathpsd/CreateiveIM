@@ -1,11 +1,13 @@
-package com.example.android.creativeim
+package com.example.android.creativeim.data
 
-import java.io.Serializable
+import android.os.Parcelable
+import kotlinx.android.parcel.Parcelize
 
+@Parcelize
 data class User(
     val userId: String,
     val userName: String,
     val firstName: String,
     val lastName: String,
     val age: Int
-) : Serializable
+) : Parcelable

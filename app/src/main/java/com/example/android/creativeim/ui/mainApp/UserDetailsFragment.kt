@@ -9,6 +9,8 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
 import com.example.android.creativeim.R
+import com.example.android.creativeim.SharedPrefsManager
+import com.example.android.creativeim.constants.Constants
 import com.example.android.creativeim.databinding.FragmentUserDetailsBinding
 import com.example.android.creativeim.ui.MainViewModel
 import com.example.android.creativeim.utils.Logger
@@ -45,6 +47,11 @@ class UserDetailsFragment : Fragment() {
             when (it) {
                 is Result.Success -> {
                     if (it.data is DocumentReference) {
+                        SharedPrefsManager.saveStringPreference(
+                            requireContext(),
+                            Constants.DOCUMENT_ID,
+                            it.data.id
+                        )
                         navigateToHomeFragment()
                     }
                 }

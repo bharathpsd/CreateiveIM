@@ -1,6 +1,6 @@
 package com.example.android.creativeim.repo
 
-import com.example.android.creativeim.User
+import com.example.android.creativeim.data.User
 import com.example.android.creativeim.messagedata.NotificationData
 import com.example.android.creativeim.utils.Logger
 import com.example.android.creativeim.utils.OnAuthCompleteListener
@@ -21,11 +21,12 @@ private const val TAG = "LoginRepo"
 
 class LoginRepo (
     private val firebaseAuth: FirebaseAuth,
-    fireStore: FirebaseFirestore,
+    private val fireStore: FirebaseFirestore,
     private val sendMessageService: SendMessageServiceInterface
 ) : LoginRepoInterface{
 
     private val collectionPrefs: CollectionReference = fireStore.collection("persons")
+    private lateinit var messageCollection: CollectionReference
 
     override suspend fun loginWithEmailandPwd(userId: String, pwd: String, authCompleteListener: OnAuthCompleteListener) {
         firebaseAuth.signInWithEmailAndPassword(userId, pwd)
@@ -62,7 +63,12 @@ class LoginRepo (
                         Logger.log(TAG, taskRef.toString())
                         if (taskRef.isSuccessful) {
                             Logger.log(TAG, "User details update successful")
-                            authCompleteListener.onSuccess(Success(collectionPrefs.document()))
+                            Logger.log(TAG, "Task Result ID: " + taskRef.result?.id)
+                            val doc = taskRef.result
+                            if (doc?.id != null || doc?.id!!.isNotEmpty()) {
+                                messageCollectionRef(doc.id)
+                            }
+                            authCompleteListener.onSuccess(Success(doc))
                         } else {
                             Logger.log(TAG, "User details update failed")
                             authCompleteListener.onFailure(Error(taskRef.result.toString()))
@@ -93,6 +99,10 @@ class LoginRepo (
         collectionPrefs.document()
     }
 
+    private fun messageCollectionRef(documentId: String): CollectionReference {
+        return fireStore.collection("persons/$documentId/messages")
+    }
+
     private fun handleAuthResult(
         it: Task<AuthResult>,
         authCompleteListener: OnAuthCompleteListener
@@ -109,11 +119,15 @@ class LoginRepo (
         }
     }
 
-    override suspend fun searchUid(userId: String, authCompleteListener: OnAuthCompleteListener) {
-        Logger.log(TAG, "authcompleteLister : $authCompleteListener")
-        collectionPrefs
+    private fun searchUserWithId(userId: String): Task<QuerySnapshot> {
+        return collectionPrefs
             .whereEqualTo("userName", userId)
             .get()
+    }
+
+    override suspend fun searchUid(userId: String, authCompleteListener: OnAuthCompleteListener) {
+        Logger.log(TAG, "authcompleteLister : $authCompleteListener")
+        searchUserWithId(userId)
             .addOnCompleteListener {
                 searchUser(it, authCompleteListener)
             }
@@ -134,7 +148,6 @@ class LoginRepo (
                                 } else if (result.isSuccessful) {
                                     Logger.log(TAG, "Result is successful : ${result.result}")
                                     result.result.let { user ->
-                                        Logger.log(TAG, "Inside result user")
                                         Logger.log(TAG, "The user is : $user")
                                         dataToObject(user, authCompleteListener)
                                         return@addOnCompleteListener
@@ -155,7 +168,7 @@ class LoginRepo (
                         }
                 }
             } else {
-                authCompleteListener.onFailure(Error(it.exception!!.message.toString()))
+                authCompleteListener.onFailure(Error(it.result.toString()))
                 Logger.log(TAG, "No Person with this name")
                 return
             }
@@ -174,7 +187,13 @@ class LoginRepo (
         val userId = user.get("userId").toString()
         val age = user.get("age").toString().toInt()
         val userName = user.get("userName").toString()
-        val person = User(userId, userName, firstName, lastName, age)
+        val person = User(
+            userId,
+            userName,
+            firstName,
+            lastName,
+            age
+        )
         Logger.log(TAG, "Person : $person")
         authCompleteListener.onSuccess(Success(person))
         return

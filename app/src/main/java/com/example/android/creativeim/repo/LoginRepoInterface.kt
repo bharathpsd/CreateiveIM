@@ -1,6 +1,6 @@
 package com.example.android.creativeim.repo
 
-import com.example.android.creativeim.User
+import com.example.android.creativeim.data.User
 import com.example.android.creativeim.messagedata.NotificationData
 import com.example.android.creativeim.utils.OnAuthCompleteListener
 import com.example.android.creativeim.utils.Result
