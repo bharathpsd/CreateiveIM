@@ -8,6 +8,8 @@
         <variable
             name="viewmodel"
             type="com.example.android.creativeim.ui.MainViewModel" />
+
+        <import type="android.view.View" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -15,43 +17,24 @@
         android:layout_height="match_parent"
         android:background="@drawable/login_bg">
 
-       <EditText
-           android:id="@+id/username"
-           android:layout_width="match_parent"
-           android:layout_height="wrap_content"
-           app:layout_constraintLeft_toLeftOf="parent"
-           app:layout_constraintRight_toRightOf="parent"
-           app:layout_constraintTop_toTopOf="parent"
-           app:layout_constraintBottom_toBottomOf="parent"
-           android:layout_margin="@dimen/default_textview_margin"
-           android:background="@drawable/rounded_corners"
-           android:hint="@string/username"
-           android:textSize="20sp"
-           android:padding="@dimen/default_padding"
-           android:paddingStart="15dp"
-           android:paddingEnd="15dp"
-           android:importantForAutofill="no"
-           android:inputType="text"
-           app:layout_constraintVertical_bias="0.20"/>
-
         <EditText
             android:id="@+id/email"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/username"
+            app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
             android:layout_margin="@dimen/default_textview_margin"
             android:background="@drawable/rounded_corners"
             android:hint="@string/email"
             android:textSize="20sp"
             android:padding="@dimen/default_padding"
-            android:paddingStart="15dp"
-            android:paddingEnd="15dp"
+            android:paddingStart="@dimen/default_padding"
+            android:paddingEnd="@dimen/default_padding"
             android:importantForAutofill="no"
             android:inputType="textEmailAddress"
-            app:layout_constraintVertical_bias="0.05"/>
+            app:layout_constraintVertical_bias="0.25" />
 
         <EditText
             android:id="@+id/pwd"
@@ -81,15 +64,18 @@
             app:layout_constraintTop_toBottomOf="@+id/pwd"
             app:layout_constraintBottom_toBottomOf="parent"
             android:text="@string/submit"
-            app:layout_constraintVertical_bias="0.15"
+            app:layout_constraintVertical_bias="0.30"
             android:layout_marginStart="@dimen/button_margin"
             android:layout_marginEnd="@dimen/button_margin"
             app:cornerRadius="@dimen/textview_corners"
             android:shadowColor="@color/colorAccent"
-            android:textColor="@android:color/black"/>
+            android:textColor="@android:color/black"
+            app:backgroundTint="@color/orange"
+            android:onClick="@{() -> viewmodel.validateUNandPassword(email, pwd, 1)}"/>
 
         <TextView
-            android:layout_width="match_parent"
+            android:id="@+id/already_registered"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
@@ -99,7 +85,19 @@
             android:backgroundTint="@android:color/transparent"
             app:layout_constraintVertical_bias="0.05"
             android:gravity="center"
-            android:textColor="@android:color/white"/>
+            android:padding="@dimen/register_text"
+            android:textColor="@android:color/black" />
+
+        <ProgressBar
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:backgroundTint="@android:color/black"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:theme="@style/OrangeAccent"
+            android:visibility="@{viewmodel.auth ? View.VISIBLE : View.GONE}"/>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

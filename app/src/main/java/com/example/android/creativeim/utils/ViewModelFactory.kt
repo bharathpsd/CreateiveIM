@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.savedstate.SavedStateRegistryOwner
 import com.example.android.creativeim.repo.LoginRepoInterface
 import com.example.android.creativeim.ui.MainViewModel
+import com.example.android.creativeim.ui.mainApp.HomeViewModel
 
 @Suppress("UNCHECKED_CAST")
 class ViewModelFactory(
@@ -21,6 +22,7 @@ class ViewModelFactory(
     ): T = with(modelClass) {
         when {
             isAssignableFrom(MainViewModel::class.java) -> MainViewModel(loginRepo)
+            isAssignableFrom(HomeViewModel::class.java) -> HomeViewModel(loginRepo)
             else -> MainViewModel(loginRepo)
         }
     } as T

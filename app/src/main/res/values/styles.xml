@@ -10,4 +10,8 @@
 
     <style name="Toolbar" parent="ThemeOverlay.AppCompat.Light" />
 
+    <style name="OrangeAccent">
+        <item name="colorAccent">@color/orange</item>
+    </style>
+
 </resources>
