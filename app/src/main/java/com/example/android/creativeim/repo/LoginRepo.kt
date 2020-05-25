@@ -50,35 +50,62 @@ class LoginRepo (
         user: User,
         authCompleteListener: OnAuthCompleteListener
     ) {
-        try {
-            firebaseAuth.currentUser?.updateProfile(UserProfileChangeRequest.Builder().apply {
-                displayName = user.userName
-            }.build())!!.addOnCompleteListener {
-                if (it.isSuccessful) {
-                    Logger.log(TAG, "display username update successful")
-                    collectionPrefs.add(user).addOnCompleteListener { taskRef ->
-                        Logger.log(TAG, taskRef.toString())
-                        if (taskRef.isSuccessful) {
-                            Logger.log(TAG, "User details update successful")
-                            Logger.log(TAG, "Task Result ID: " + taskRef.result?.id)
-                            val doc = taskRef.result
-                            if (doc?.id != null || doc?.id!!.isNotEmpty()) {
-                                authCompleteListener.onSuccess(Success(doc))
-                            }
-                        } else {
-                            Logger.log(TAG, "User details update failed")
-                            authCompleteListener.onFailure(Error(taskRef.result.toString()))
+        Logger.log(TAG, "Inside update details in repo")
+        val userRef = fireStore.collection("users")
+        userRef.get().addOnCompleteListener {
+            Logger.log(TAG, "Inside userRef complete in repo")
+            if (it.isSuccessful) {
+                Logger.log(TAG, "Inside userRef success in repo")
+                it.result!!.let { querySnapshot ->
+                    Logger.log(TAG, "Inside userRef and further in repo")
+                    if (querySnapshot.size() != 0)
+                        for (document in querySnapshot) {
+                            Logger.log(TAG, "Document ID : ${document.id}")
+                            val userResult = dataToObject(document)
+                            if (userResult.userName == user.userName) {
+                                authCompleteListener.onFailure(Error("Username Not available"))
+                                return@addOnCompleteListener
                         }
                     }
-                } else {
-                    Logger.log(TAG, "display username update failed")
-                    authCompleteListener.onFailure(Error(it.result.toString()))
+                    try {
+                        firebaseAuth.currentUser?.updateProfile(
+                            UserProfileChangeRequest.Builder().apply {
+                                displayName = user.userName
+                            }.build()
+                        )!!.addOnCompleteListener { userSearch ->
+                            if (userSearch.isSuccessful) {
+                                Logger.log(TAG, "display username update successful")
+                                collectionPrefs.add(user).addOnCompleteListener { taskRef ->
+                                    Logger.log(TAG, taskRef.toString())
+                                    if (taskRef.isSuccessful) {
+                                        Logger.log(TAG, "User details update successful")
+                                        Logger.log(TAG, "Task Result ID: " + taskRef.result?.id)
+                                        val doc = taskRef.result
+                                        if (doc?.id != null || doc?.id!!.isNotEmpty()) {
+                                            userRef.add(user)
+                                            authCompleteListener.onSuccess(Success(doc))
+                                        }
+                                    } else {
+                                        Logger.log(TAG, "User details update failed")
+                                        authCompleteListener.onFailure(Error(taskRef.result.toString()))
+                                    }
+                                }
+                            } else {
+                                Logger.log(TAG, "display username update failed")
+                                authCompleteListener.onFailure(Error(userSearch.result.toString()))
+                            }
+                        }
+                    } catch (e: Exception) {
+                        authCompleteListener.onFailure(Error(e.message.toString()))
+                    }
                 }
+            } else if (!it.isSuccessful && it.exception.toString().isNotEmpty()) {
+                if (it.exception.toString().isNotEmpty()) {
+                    Logger.log(TAG, "Caught exception while searching userRef")
+                }
+                authCompleteListener.onFailure(Error("Cannot add user at this time"))
             }
-        } catch (e: Exception) {
-            authCompleteListener.onFailure(Error(e.message.toString()))
         }
-
     }
 
     override suspend fun signOutUser() {
