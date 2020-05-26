@@ -57,9 +57,15 @@ class SearchUserFragment : Fragment() {
     }
 
     private fun showSnackBar(message: String) {
+        var displayMessage = ""
         (requireContext() as MainActivity).hideKeyBoard(requireView())
         Logger.log(TAG, "Error searching user : $message")
-        Snackbar.make(requireView(), "Cannot find user", Snackbar.LENGTH_LONG)
+        if (message == "User already in your list") {
+            displayMessage = message
+        } else {
+            displayMessage = "Cannot find user"
+        }
+        Snackbar.make(requireView(), displayMessage, Snackbar.LENGTH_LONG)
             .setAction(R.string.ok) {
             }.show()
     }

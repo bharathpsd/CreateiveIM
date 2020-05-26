@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.OnBackPressedCallback
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
@@ -47,6 +48,17 @@ class MessagesFragment : Fragment() {
         setUpClickListeners()
         setUpAdapter()
         setUpView()
+        handleBackPress()
+    }
+
+    private fun handleBackPress() {
+        requireActivity().onBackPressedDispatcher.addCallback(
+            viewLifecycleOwner,
+            object : OnBackPressedCallback(true) {
+                override fun handleOnBackPressed() {
+                    navigateToHome()
+                }
+            })
     }
 
     private fun setUpAdapter() {
@@ -83,25 +95,27 @@ class MessagesFragment : Fragment() {
 
     private fun setUpClickListeners() {
         send.setOnClickListener {
-            val message = et_message.text.toString()
-            val fromId = currentUser.uid
-            val toId = arguments?.let { (it.get("user") as User).userId }
-            val timeStamp = System.currentTimeMillis()
-            val toUser = arguments?.let { (it.get("user") as User).firstName }
-            val fromUser = currentUser.displayName
+            if (et_message.text.toString().trim().isNotEmpty()) {
+                val message = et_message.text.toString()
+                val fromId = currentUser.uid
+                val toId = arguments?.let { (it.get("user") as User).userId }
+                val timeStamp = System.currentTimeMillis()
+                val toUser = arguments?.let { (it.get("user") as User).firstName }
+                val fromUser = currentUser.displayName
 
-            Logger.log(
-                TAG, """
-                Message : $message,
-                fromId : $fromId,
-                toId : $toId,
-                timeStamp : $timeStamp
-            """.trimIndent()
-            )
+                Logger.log(
+                    TAG, """
+                    Message : $message,
+                    fromId : $fromId,
+                    toId : $toId,
+                    timeStamp : $timeStamp
+                """.trimIndent()
+                )
 
-            viewModel.sendMessage(message, fromId, toId!!, timeStamp, toUser!!, fromUser!!)
-            et_message.setText("")
-            getMessages()
+                viewModel.sendMessage(message, fromId, toId!!, timeStamp, toUser!!, fromUser!!)
+                et_message.setText("")
+                getMessages()
+            }
         }
     }
 

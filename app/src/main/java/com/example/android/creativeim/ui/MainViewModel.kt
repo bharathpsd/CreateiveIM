@@ -178,13 +178,21 @@ class MainViewModel (
             _auth.value = true
             viewModelScope.launch {
                 Logger.log(TAG, "Searching user...")
-                searchUserWithUserId(userName.text.toString())
+                searchUserWithUserId(
+                    currentUser.value!!.uid,
+                    currentUser.value!!.displayName.toString(),
+                    userName.text.toString()
+                )
             }
         }
     }
 
-    private suspend fun searchUserWithUserId(text: String) {
-        repo.searchUid(text, this)
+    private suspend fun searchUserWithUserId(
+        currentUserId: String,
+        currentUserName: String,
+        text: String
+    ) {
+        repo.searchUid(currentUserId, currentUserName, text, this)
     }
 
     fun sendMessage(
