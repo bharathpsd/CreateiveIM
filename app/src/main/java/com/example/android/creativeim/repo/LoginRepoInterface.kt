@@ -30,7 +30,12 @@ interface LoginRepoInterface {
         fromUser: String
     )
 
-    suspend fun searchUid(userId: String, authCompleteListener: OnAuthCompleteListener)
+    suspend fun searchUid(
+        currentUserId: String,
+        currentUserName: String,
+        userId: String,
+        authCompleteListener: OnAuthCompleteListener
+    )
 
     suspend fun getMessages(
         messages: MutableLiveData<List<MessageData>>,

@@ -154,11 +154,37 @@ class LoginRepo (
             .get()
     }
 
-    override suspend fun searchUid(userId: String, authCompleteListener: OnAuthCompleteListener) {
+    override suspend fun searchUid(
+        currentUserId: String,
+        currentUserName: String,
+        userId: String,
+        authCompleteListener: OnAuthCompleteListener
+    ) {
         Logger.log(TAG, "authcompleteLister : $authCompleteListener")
-        searchUserWithId(userId)
-            .addOnCompleteListener {
-                searchUser(it, authCompleteListener)
+        val reference = fireStore.collection("friends/$currentUserId/$currentUserName")
+        reference.get()
+            .addOnCompleteListener { snapShotTask ->
+                if (snapShotTask.isSuccessful) {
+                    Logger.log(TAG, "Inside success of search query")
+                    snapShotTask.result!!.let { querySnapshot ->
+                        Logger.log(TAG, "Inside userRef and further in repo")
+                        if (querySnapshot.size() != 0) {
+                            Logger.log(TAG, "Inside not 0")
+                            for (document in querySnapshot) {
+                                Logger.log(TAG, "Document ID : ${document.id}")
+                                val userResult = dataToObject(document)
+                                if (userResult.userName == userId) {
+                                    authCompleteListener.onFailure(Error("User already in your list"))
+                                    return@addOnCompleteListener
+                                }
+                            }
+                        }
+                        searchUserWithId(userId)
+                            .addOnCompleteListener {
+                                searchUser(it, authCompleteListener)
+                            }
+                    }
+                }
             }
     }
 
