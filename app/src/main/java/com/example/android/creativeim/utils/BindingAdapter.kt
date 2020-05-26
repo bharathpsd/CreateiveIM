@@ -12,6 +12,7 @@ fun setItems(listView: RecyclerView, items: List<MessageData>?) {
     items?.let {
         val sortedItems = it.sortedWith(compareBy { data -> data.timeStamp })
         (listView.adapter as MessagesAdapter).differ.submitList(sortedItems)
+        (listView.adapter as MessagesAdapter).notifyDataSetChanged()
     }
 }
 
@@ -20,5 +21,6 @@ fun setUserItems(listView: RecyclerView, items: List<User>?) {
     items?.let {
 //        val sortedItems = it.sortedWith(compareBy {  data -> data.timeStamp  })
         (listView.adapter as UserAdpater).differ.submitList(items)
+        (listView.adapter as UserAdpater).notifyDataSetChanged()
     }
 }
