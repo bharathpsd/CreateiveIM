@@ -196,12 +196,14 @@ class LoginRepo (
         Logger.log(TAG, "Inside getMessages of LoginRepo")
         val messagesList = arrayListOf<MessageData>()
         val reference = fireStore.collection("user-messages/$fromId/$toId")
+        messages.value = messagesList
         reference.addSnapshotListener { querySnapshot, firebaseFirestoreException ->
             firebaseFirestoreException?.let {
                 Logger.log(TAG, it.message.toString())
                 return@addSnapshotListener
             }
             querySnapshot?.let {
+                messagesList.clear()
                 for (document in it) {
                     Logger.log(TAG, "Document ID : ${document.id}")
                     val messageData = dataToDocument(document)
